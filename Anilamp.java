@@ -3,6 +3,7 @@ package mainAssignment;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Random;
 import javax.swing.*;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLCanvas;
@@ -17,6 +18,7 @@ public class Anilamp extends JFrame implements ActionListener {
     private Lamp_GLEventListener glEventListener;
     private final FPSAnimator animator;
     private mainAssignment.Camera camera;
+    public float randomAngle1 = 0, randomAngle2 = 0;
 
     public static void main(String[] args) {
         mainAssignment.Anilamp b1 = new mainAssignment.Anilamp( "Anilamp" );
@@ -48,16 +50,32 @@ public class Anilamp extends JFrame implements ActionListener {
         JButton b = new JButton("camera X");
         b.addActionListener(this);
         p.add(b);
+
         b = new JButton("camera Z");
         b.addActionListener(this);
         p.add(b);
+
         b = new JButton("Lamp rotate!");
         b.addActionListener(this);
         p.add(b);
+
         b = new JButton("Lamp jump!");
         b.addActionListener(this);
         p.add(b);
+
         b = new JButton("Lamp shake head!");
+        b.addActionListener(this);
+        p.add(b);
+
+        b = new JButton("light 1 on/off");
+        b.addActionListener(this);
+        p.add(b);
+
+        b = new JButton("light 2 on/off");
+        b.addActionListener(this);
+        p.add(b);
+
+        b = new JButton("lamp on/off");
         b.addActionListener(this);
         p.add(b);
 
@@ -85,6 +103,10 @@ public class Anilamp extends JFrame implements ActionListener {
             canvas.requestFocusInWindow();
         }
         else if (e.getActionCommand().equalsIgnoreCase("Lamp rotate!")){
+            glEventListener.animation = true;
+            Random random = new Random();
+            randomAngle1 = random.nextInt(90) - 30;
+            randomAngle2 = random.nextInt(180) - 90;
             glEventListener.rotateArm();
         }
         else if (e.getActionCommand().equalsIgnoreCase("Lamp jump!")){
@@ -93,9 +115,19 @@ public class Anilamp extends JFrame implements ActionListener {
         else if (e.getActionCommand().equalsIgnoreCase("Lamp shake head!")){
             glEventListener.shakeHead();
         }
+        else if (e.getActionCommand().equalsIgnoreCase("light 1 on/off")){
+            glEventListener.Worldlight1();
+        }
+        else if (e.getActionCommand().equalsIgnoreCase("light 2 on/off")){
+            glEventListener.Worldlight2();
+        }
+        else if (e.getActionCommand().equalsIgnoreCase("lamp on/off")){
+            glEventListener.Spotlight();
+        }
         else if(e.getActionCommand().equalsIgnoreCase("quit"))
             System.exit(0);
         }
+
 }
 class MyKeyboardInput extends KeyAdapter  {
   private Camera camera;

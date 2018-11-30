@@ -16,33 +16,85 @@ struct Light {
   vec3 specular;
 };
 
-uniform Light light;  
+struct SpotLight {
+    vec3 position;
+    vec3 direction;
+    float cutOff;
+    float outerCutOff;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
+
+
+
+uniform Light light[2];
+uniform SpotLight spotlight;
 
 struct Material {
   vec3 ambient;
   vec3 diffuse;
   vec3 specular;
   float shininess;
-}; 
-  
+};
+
 uniform Material material;
 
-void main() {
+vec3 CalculateLight(Light light) {
   // ambient
   vec3 ambient = light.ambient * material.ambient * texture(first_texture, aTexCoord).rgb;
-  
+
   // diffuse
   vec3 norm = normalize(aNormal);
-  vec3 lightDir = normalize(light.position - aPos);  
+  vec3 lightDir = normalize(light.position - aPos);
   float diff = max(dot(norm, lightDir), 0.0);
   vec3 diffuse = light.diffuse * (diff * material.diffuse) * texture(first_texture, aTexCoord).rgb;
-  
-  // specular 
+
+  // specular
   vec3 viewDir = normalize(viewPos - aPos);
-  vec3 reflectDir = reflect(-lightDir, norm);  
+  vec3 reflectDir = reflect(-lightDir, norm);
   float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
   vec3 specular = light.specular * (spec * material.specular);
 
-  vec3 result = ambient + diffuse + specular;
-  fragColor = vec4(result, 1.0);
+  return (ambient + diffuse + specular);
+}
+
+vec3 CalculateSpotLight(SpotLight spotlight){
+  // ambient
+    vec3 ambient = spotlight.ambient * material.ambient * texture(first_texture, aTexCoord).rgb;
+
+    // diffuse
+    vec3 norm = normalize(aNormal);
+    vec3 lightDir = normalize(spotlight.position - aPos);
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = spotlight.diffuse * (diff * material.diffuse) * texture(first_texture, aTexCoord).rgb;
+
+    // specular
+    vec3 viewDir = normalize(viewPos - aPos);
+    vec3 reflectDir = reflect(-lightDir, norm);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    vec3 specular = spotlight.specular * (spec * material.specular);
+
+  //spotlight intensity
+  float theta = dot(lightDir, normalize(-spotlight.direction));
+  float epsilon = spotlight.cutOff - spotlight.outerCutOff;
+  float intensity = clamp((theta - spotlight.outerCutOff) / epsilon, 0.0, 1.0);
+
+  ambient *= intensity;
+  diffuse *= intensity;
+  specular *= intensity;
+
+  return (ambient + diffuse + specular);
+}
+
+void main() {
+
+   vec3 result = vec3(0.0);
+   for(int i = 0; i < 2; i++)
+      result += CalculateLight(light[i]);
+
+   result += CalculateSpotLight(spotlight);
+
+   fragColor = vec4(result, 1.0f);
 }
